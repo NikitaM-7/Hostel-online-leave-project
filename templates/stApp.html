@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% load crispy_forms_tags %}
+
+
+{% block content %}
+
+St.{{user.username}} write you application :
+
+
+<div class="row box2">
+
+	<div class="col-md-5 box1">
+
+	<center><h1 style="font-family:bold;color:black;margin-bottom:50px">Leave Application Form</h1></center>
+	<br>
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}">
+        <label style="display: block;" for="Name"> Student Name</label>
+        <input type="text" style="width: 348px;" name="Name">
+        <label style="display: block;" for="Hostel"> Hostel No</label>
+        <input type="number" style="width: 348px;" name="Hostel ">
+        <label style="display: block;" for="Room"> Room No</label>
+        <input type="number" style="width: 348px;" name="Room ">
+        <label style="display: block;" for="Department"> Department</label>
+        <select name="Department" style="width: 348px;" id="">
+          <option value="">Select Department</option>
+          <option value="Diploma ENTC">Diploma ENTC</option>
+          <option value="CSE">CSE</option>
+          <option value="MCA">MCA</option>
+          <option value="MBA">MBA</option>
+          <option value="Civil Engineering">Civil Engineering</option>
+          <option value="Diploma">Diploma</option>
+        </select>
+        <label style="display: block;" for="Mobile"> Mobile No</label>
+        <input type="number" style="width: 348px;" name="Mobile ">
+        <label style="display: block;" for="Parents"> Parents No</label>
+        <input type="number" style="width: 348px;" name="Parents ">
+        <label style="display: block;" for="City"> City</label>
+        <input type="text" style="width: 348px;" name="City">
+        <label style="display: block;" for="Start"> Start Date </label>
+        <input type="date" style="width: 348px;"  name="Start Date:">
+        <label style="display: block;" for="End"> End Date: </label>
+        <input type="date" style="width: 348px;" name="End Date:">
+      
+        <label for="SupportingDocument">Supporting Document</label>
+        <input type="file" id="SupportingDocument" style="width: 348px;" name="SupportingDocument" accept="application/pdf, image/*">
+      
+        <label for="CameraScan">Scan document using camera</label>
+        <button type="button" id="scanButton" class="btn btn-info" style="width: 348px;">Scan Document</button>
+        
+        <video id="video" width="348" height="200" style="display:none;"></video>
+        <canvas id="canvas" width="348" height="200" style="display:none;"></canvas>
+        <input type="hidden" id="scannedImage" name="scannedImage">
+
+        <p>
+          <a href="{{ form.instance.supporting_document.url }}" target="_blank">View Supporting Document</a>
+        </p>
+
+     <h6>Supporting Document:</h6>
+      <img src="{{ form.instance.supporting_document.url }}" alt="Scanned Document" width="348px">
+     
+        {{ form|crispy }}
+        <button type="submit" class="btn btn-success">Submit Application</button>
+      </form>
+
+    </div>
+
+</div>
+
+<script>
+  // Camera scanning functionality
+  const scanButton = document.getElementById('scanButton');
+  const video = document.getElementById('video');
+  const canvas = document.getElementById('canvas');
+  const context = canvas.getContext('2d');
+  const scannedImage = document.getElementById('scannedImage');
+
+  // Check if the browser supports the camera
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    scanButton.addEventListener('click', function() {
+      // Show video stream and hide the file input
+      video.style.display = 'block';
+      scanButton.style.display = 'none';
+      
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+        .then(function(stream) {
+          video.srcObject = stream;
+          video.play();
+
+          // Capture image after a short delay
+          setTimeout(function() {
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            // Convert canvas to image and upload it as a hidden field
+            const dataUrl = canvas.toDataURL('image/png');
+            scannedImage.value = dataUrl;  // Store the scanned image data in the hidden input
+
+            // Stop video stream after capturing
+            video.srcObject.getTracks().forEach(track => track.stop());
+            video.style.display = 'none';
+          }, 2000); // Wait for 2 seconds before capturing the image
+        })
+        .catch(function(error) {
+          alert('Camera access denied!');
+          console.log(error);
+        });
+    });
+  } else {
+    alert('Camera not supported on this device');
+  }
+</script>
+
+{% endblock %}
